@@ -43,6 +43,7 @@
 - market : 微信读书等第三方图书信息
 - openapi_user : 开放接口用户列表
 - openapi_token : 开放接口 Token 列表
+- openapi_log : 开放接口日志
 
 
 

@@ -2,7 +2,7 @@
 // @name         eBooks Assistant
 // @name:zh-CN   豆瓣读书助手
 // @namespace    https://github.com/caspartse/eBooksAssistant
-// @version      24.02.4
+// @version      24.07.2
 // @description  eBooks Assistant for douban.com, weread.qq.com
 // @description:zh-CN 为豆瓣读书页面添加微信读书、多看阅读、京东读书、当当云阅读、喜马拉雅等直达链接; 为微信读书增加豆瓣评分及链接。
 // @icon         https://ebooks-assistant.oss-cn-guangzhou.aliyuncs.com/ebooks_assistant_logo_256.png
@@ -11,7 +11,8 @@
 // @supportURL   https://github.com/caspartse/eBooksAssistant
 // @match        https://book.douban.com/subject/*
 // @match        https://weread.qq.com/web/bookDetail/*
-// @require      https://cdn.bootcdn.net/ajax/libs/jquery/3.7.1/jquery.min.js
+// @match        https://weread.qq.com/web/reader/*
+// @require      https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js
 // @connect      127.0.0.1
 // @connect      api.youdianzishu.com
 // @run-at       document-end
@@ -20,7 +21,7 @@
 // @updateURL https://update.greasyfork.org/scripts/412479/%E8%B1%86%E7%93%A3%E8%AF%BB%E4%B9%A6%E5%8A%A9%E6%89%8B.meta.js
 // ==/UserScript==
 
-const version = "24.02.4";
+const version = "24.07.2";
 // 如果自己部署服务，这里修改成你的服务器地址
 const REST_URL = "https://api.youdianzishu.com/v2";
 
@@ -44,8 +45,8 @@ const queryWeread = (isbn, title, subtitle, author, translator, publisher) => {
         if (result.errmsg === "") {
             const { url, price } = result.data;
 
-            let html_template_purchase = `<li><div class="cell price-btn-wrapper"><div class="vendor-name"><img class="eba_vendor_icon" src="${base64_icon_weread}">
-            <a target="_blank" href="${url}"><span>&nbsp;微信读书</span></a></div><div class="cell impression_track_mod_buyinfo"><div class="cell price-wrapper">
+            let html_template_purchase = `<li><div class="cell price-btn-wrapper"><div class="vendor-name"><img class="eba_vendor_icon" src="${base64_icon_weread}">&nbsp;
+            <a target="_blank" href="${url}"><span>微信读书</span></a></div><div class="cell impression_track_mod_buyinfo"><div class="cell price-wrapper">
             <a target="_blank" href="${url}"><span class="buylink-price"> ${price}元 </span></a></div><div class="cell">
             <a target="_blank" href="${url}" class="buy-book-btn e-book-btn"><span>购买电子书</span></a></div></div></div></li>`;
 
@@ -78,8 +79,8 @@ const queryDuokan = (isbn, title, subtitle, author, translator, publisher) => {
         if (result.errmsg === "") {
             const { url, price } = result.data;
 
-            let html_template_purchase = `<li><div class="cell price-btn-wrapper"><div class="vendor-name"><img class="eba_vendor_icon" src="${base64_icon_duokan}">
-            <a target="_blank" href="${url}"><span>&nbsp;多看阅读</span></a></div><div class="cell impression_track_mod_buyinfo"><div class="cell price-wrapper">
+            let html_template_purchase = `<li><div class="cell price-btn-wrapper"><div class="vendor-name"><img class="eba_vendor_icon" src="${base64_icon_duokan}">&nbsp;
+            <a target="_blank" href="${url}"><span>多看阅读</span></a></div><div class="cell impression_track_mod_buyinfo"><div class="cell price-wrapper">
             <a target="_blank" href="${url}"><span class="buylink-price"> ${price}元 </span></a></div><div class="cell">
             <a target="_blank" href="${url}" class="buy-book-btn e-book-btn"><span>购买电子书</span></a></div></div></div></li>`;
 
@@ -146,8 +147,8 @@ const queryDangdang = (isbn, title, subtitle, author, translator, publisher) => 
         if (result.errmsg === "") {
             const { url, price } = result.data;
 
-            let html_template_purchase = `<li><div class="cell price-btn-wrapper"><div class="vendor-name"><img class="eba_vendor_icon" src="${base64_icon_dangdang}">
-            <a target="_blank" href="${url}"><span>&nbsp;当当阅读&nbsp;</span></a></div><div class="cell impression_track_mod_buyinfo"><div class="cell price-wrapper">
+            let html_template_purchase = `<li><div class="cell price-btn-wrapper"><div class="vendor-name"><img class="eba_vendor_icon" src="${base64_icon_dangdang}">&nbsp;
+            <a target="_blank" href="${url}"><span>当当阅读</span></a></div><div class="cell impression_track_mod_buyinfo"><div class="cell price-wrapper">
             <a target="_blank" href="${url}"><span class="buylink-price"> ${price}元 </span></a></div><div class="cell">
             <a target="_blank" href="${url}" class="buy-book-btn e-book-btn"><span>购买电子书</span></a></div></div></div></li>`;
 
@@ -399,14 +400,17 @@ const extractData = (doc, regex) => {
 // 微信读书页面主函数
 const wereadMain = () => {
     let vbookid = "";
-    const regex_vbookid = /bookDetail\/([0-9a-zA-Z]+)/gi;
-    const result_vbookid = regex_vbookid.exec(String(window.location.href));
-    if (result_vbookid) {
-      vbookid = result_vbookid[1];
-      console.log(vbookid);
+    const locationHref = window.location.href;
+    const match = locationHref.match(/(?:bookDetail|reader)\/([0-9a-zA-Z]+)/);
+
+    if (match && match[1].length <= 24) {
+        vbookid = match[1];
+        console.log(vbookid);
     } else {
-      console.log('vbookid not match.');
+        console.log('vbookid not match.');
+        return;
     }
+
     const handleResponse = (responseDetail) => {
         const result = JSON.parse(responseDetail.responseText);
         console.log(result);
@@ -427,6 +431,7 @@ const wereadMain = () => {
             book_ratings_container.prepend(douban_info);
         }
     };
+
     GM_xmlhttpRequest ({
         method: "GET",
         url: `${REST_URL}/weread/douban_info?vbookid=${vbookid}&version=${version}&r=${Math.random()}`,

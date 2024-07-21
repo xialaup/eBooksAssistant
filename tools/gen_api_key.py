@@ -69,7 +69,7 @@ def create_key(user_id: str, days: int, quota: int, secret_key: str = JWT_SECRET
     q = f'''
         UPDATE openapi_token
         SET is_valid = FALSE
-        WHERE user_id = '{user_id}' AND api_key != '{api_key}';
+        WHERE user_id = '{user_id}' AND api_key <> '{api_key}';
     '''
     cur.execute(q)
     conn.commit()

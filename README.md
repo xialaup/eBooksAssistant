@@ -43,7 +43,7 @@ eBooks Assistant for douban.com, weread.qq.com .
 
 ## 代码开源
 
-本项目的服务端代码是开源的，你可以通过克隆代码的方式，**一键部署**自己的服务。
+本项目客户端、服务端代码都是开源的，你可以通过克隆代码的方式，**一键部署**自己的服务。
 
 具体的部署步骤和要求，请参照《本地部署参考文档》（[Self-Hosted Reference](references/Self_Hosted_Reference.md)）部分。
 
